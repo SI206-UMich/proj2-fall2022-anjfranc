@@ -25,7 +25,58 @@ def get_listings_from_search_results(html_file):
         ('Loft in Mission District', 210, '1944564'),  # example
     ]
     """
-    pass
+    
+    with open(html_file) as file:
+        soup = BeautifulSoup(file, 'html.parser')
+
+        listings= soup.find_all('div', class_="t1jojoys dir dir-ltr")
+        titles = []
+        for title in listings:  
+            a = title.text
+            titles.append(a)
+
+
+
+        #cost
+        costs = soup.find_all('span', class_="_tyxjp1")
+        cost_lst = []
+
+        for cost in costs :
+             price = cost.text[1:].strip()
+
+             cost_lst.append(int(price))
+
+
+        #listing_id
+        ids= soup.find_all("meta", itemprop="url")
+        id_lst=[]
+        # print(ids)
+        for id in ids:
+            real_id=id.get("content")
+            # print(real_id)
+            lst=re.findall("^www\.airbnb.*\/([\d]+)\?", real_id)
+            # print(lst)
+            if len(lst)>0:
+                id_lst.extend(lst)
+                for item in lst:
+                    if item not in id_lst:
+                        id_lst.append(item)
+
+        # return len(id_lst)
+
+
+        
+        final_lst = []
+        for i in range(len(titles)):
+        
+    
+
+            x = (titles[i], cost_lst[i], id_lst[i])
+            final_lst.append(x)
+
+        return final_lst
+  
+# print(get_listings_from_search_results("html_files/mission_district_search_results.html"))
 
 
 def get_listing_information(listing_id):
@@ -52,14 +103,61 @@ def get_listing_information(listing_id):
         number of bedrooms
     )
     """
-    pass
+    
+    filename= "html_files/listing_"+ listing_id +".html"
+    file= open(filename, 'r', encoding="UTF-8")
+    f=file.read()
+    soup= BeautifulSoup(f, "html.parser")
+    file.close()
+    #Policynumber
+    policy= soup.find("li", class_="f19phm7j dir dir-ltr")
+    number=policy.find("span", class_="ll4r2nl dir dir-ltr").text
+    # print(number)
+    if "pending" in number.lower():
+        policy="Pending"
+    elif "not needed" in number.lower():
+        policy= "Exempt"
+    else:
+        policy=number
+    # return policy
+
+  
+    place_type = soup.find('h2', class_ = "_14i3z6h").text
+    if "private" in place_type.lower():
+        place = "Private Room"
+    elif "shared" in place_type.lower():
+        place = "Shared Room"
+    else:
+        place = "Entire Room"
+    # return place
+
+    number_beds= soup.find_all("li", class_="l7n4lsf dir dir-ltr")
+    # return (number_beds)
+    number_beds1= number_beds[1].find_all("span")
+    # print(number_beds1)
+    number_real= number_beds[2].text
+    # return(number_real)
+    if "studio" in number_real.lower():
+        bed_num=1
+    else:
+        a= number_real.split()
+        # return a
+        bed_num= int(a[1])
+        # return bed_num
+
+    #Final Tuple
+    final= (policy, place, bed_num)
+    return final
 
 
-def get_detailed_listing_database(html_file):
+# print(get_listing_information("1944564")) 
+
+
+def get_detailed_listing_database(html_file): 
     """
     Write a function that calls the above two functions in order to return
     the complete listing information using the functions you’ve created.
-    This function takes in a variable representing the location of the search results html file.
+    This function takes in a variable representing the location of the search results html file.  
     The return value should be in this format:
 
 
@@ -69,7 +167,20 @@ def get_detailed_listing_database(html_file):
         ...
     ]
     """
-    pass
+
+
+    lst=[]
+    first=  get_listings_from_search_results(html_file)
+    # return(first)
+    for tup in first:
+        second=get_listing_information(tup[2]) #put in listing id here
+        final=(tup[0], tup[1], tup[2], second[0], second[1], second[2])
+        lst.append(final)
+    return lst
+
+# print(get_detailed_listing_database("html_files/mission_district_search_results.html"))
+
+
 
 
 def write_csv(data, filename):
@@ -94,7 +205,11 @@ def write_csv(data, filename):
 
     This function should not return anything.
     """
+    file = open(filename, "w")
+    file.write("Listing Title,Cost,Listing ID,Policy Number,Place Type,Number of Bedrooms\n")
+    sorttup= sorted(data, key=lambda x: x[1])
     pass
+
 
 
 def check_policy_numbers(data):
@@ -238,8 +353,10 @@ class TestCases(unittest.TestCase):
         pass
 
 
-if __name__ == '__main__':
-    database = get_detailed_listing_database("html_files/mission_district_search_results.html")
-    write_csv(database, "airbnb_dataset.csv")
-    check_policy_numbers(database)
-    unittest.main(verbosity=2)
+# if __name__ == '__main__':
+#     database = get_detailed_listing_database("html_files/mission_district_search_results.html")
+#     write_csv(database, "airbnb_dataset.csv")
+#     check_policy_numbers(database)
+#     unittest.main(verbosity=2)
+
+
