@@ -150,7 +150,7 @@ def get_listing_information(listing_id):
     return final
 
 
-# print(get_listing_information("51027324")) 
+# print(get_listing_information("1944564")) 
 
 
 def get_detailed_listing_database(html_file): 
@@ -179,9 +179,6 @@ def get_detailed_listing_database(html_file):
     return lst
 
 # print(get_detailed_listing_database("html_files/mission_district_search_results.html"))
-
-
-
 
 def write_csv(data, filename):
     """
@@ -380,15 +377,13 @@ class TestCases(unittest.TestCase):
         self.assertEqual(csv_lines[-1], ['Apartment in Mission District', '399', '28668414', 'Pending', 'Entire Room', '2'])
         
 
-        
-
     def test_check_policy_numbers(self):
         # call get_detailed_listing_database on "html_files/mission_district_search_results.html"
         # and save the result to a variable
         detailed_database = get_detailed_listing_database("html_files/mission_district_search_results.html")
         # call check_policy_numbers on the variable created above and save the result as a variable
         invalid_listings = check_policy_numbers(detailed_database)
-        print(invalid_listings)
+        # print(invalid_listings)
         # check that the return value is a list
         self.assertEqual(type(invalid_listings), list)
         # check that there is exactly one element in the string
